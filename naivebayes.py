@@ -3,70 +3,141 @@ from preprocess import removeSGML, tokenizeText, removeStopwords, stemWords
 from porter import PorterStemmer
 import glob
 import string
+from emoji import UNICODE_EMOJI
+import csv
 
-def trainNaiveBayes(training_file_paths):
+def is_emoji(s):
+    return s in UNICODE_EMOJI
+
+def trainNaiveBayes(training_file):
     # Initialzing vocab_set
     vocab_set = []
-    true_vocab_set = {} # key = word, value = occurences
-    fake_vocab_set = {}  # key = word, value = occurences
-    num_true_docs = 0
-    num_fake_docs = 0
-    total_words_true = 0
-    total_words_fake = 0
-
-    for path in training_file_paths:
-        # Opening the file
-        file_content = open(path, "r").read()
-        
-        # Removing the SGML tags
-        file_content = removeSGML(file_content)
-
-        # Tokenizing text
-        file_content = tokenizeText(file_content)
-
-        #Getting filename
-        file_class = path.split("/")[-1][:4]
-            
-        # If file is in class "true"
-        if file_class == "true":
-            # Incrementing counts of true documents
-            num_true_docs += 1
-
-            # Looping through file content
-            for word in file_content:
-                total_words_true += 1
-                word = word.lower()
-                # Adding to total docs
-                if word not in vocab_set and word not in string.punctuation:
-                    vocab_set.append(word)
-                
-                if word in true_vocab_set and word not in string.punctuation:
-                    true_vocab_set[word] += 1
-                elif word not in string.punctuation:
-                    true_vocab_set[word] = 1
-        # If file is fake
-        elif file_class == "fake":
-            # Incrementing counts of true documents
-            num_fake_docs += 1
-
-            # Looping through file content
-            for word in file_content:
-                # Adding to total docs
-                total_words_fake += 1
-                word = word.lower()
-                if word not in vocab_set and word not in string.punctuation:
-                    vocab_set.append(word)
-
-                if word in fake_vocab_set and word not in string.punctuation:
-                    fake_vocab_set[word] += 1
-                elif word not in string.punctuation:
-                    fake_vocab_set[word] = 1
     
-    return num_true_docs, num_fake_docs, true_vocab_set, fake_vocab_set, total_words_true, total_words_fake, vocab_set
+    predicted_class_information_value = {}
+    predicted_class_information_value["num_docs"] = 0
+    predicted_class_information_value["total_words"] = 0
+    predicted_class_information_value["tf"] = {}
+   
+    predicted_class_information = {}
+    predicted_class_information["gen_x"] = predicted_class_information_value
+    predicted_class_information["millenial"] = predicted_class_information_value
+    predicted_class_information["gen_z"] = predicted_class_information_value
+    predicted_class_information["boomer"] = predicted_class_information_value
+    
+    with open(training_file, 'r') as csv_file:
+        reader = csv.reader(csv_file)
+
+        for row in reader:
+            print(row)
+            # Opening the file
+            tweet_content = row[1]
+            
+            # Removing the SGML tags
+            tweet_content = removeSGML(tweet_content)
+
+            # Tokenizing text
+            tweet_content = tokenizeText(tweet_content)
+
+            #Getting filename
+            tweet_class = row[2]
+                
+            # If file is in class "true"
+            if tweet_class == "gen_z":
+                # Incrementing counts of gen z documents
+                predicted_class_information["gen_z"]["num_docs"] += 1
+
+                # Looping through file content
+                for word in tweet_content:
+                    # Incrementing number of words
+                    predicted_class_information["gen_z"]["total_words"] += 1
+                    word = word.lower()
+
+                    # Check if word is emoji
+                    if is_emoji(word):
+                        word = "general_emoji_encoding"
+                    
+                    # Adding to total docs
+                    if word not in vocab_set and word not in string.punctuation:
+                        vocab_set.append(word)
+                    
+                    if word in predicted_class_information["gen_z"]["tf"] and word not in string.punctuation:
+                        predicted_class_information["gen_z"]["tf"][word] += 1
+                    elif word not in string.punctuation:
+                        predicted_class_information["gen_z"]["tf"][word] = 1
+            # If file is millenial
+            elif tweet_class == "millenial":
+                # Incrementing counts of millenial documents
+                predicted_class_information["millenial"]["num_docs"] += 1
+
+                # Looping through file content
+                for word in tweet_content:
+                    # Incrementing number of words
+                    predicted_class_information["millenial"]["total_words"] += 1
+                    word = word.lower()
+                    # Check if word is emoji
+                    if is_emoji(word):
+                        word = "general_emoji_encoding"
+                    
+                    # Adding to total docs
+                    if word not in vocab_set and word not in string.punctuation:
+                        vocab_set.append(word)
+                    
+                    if word in predicted_class_information["millenial"]["tf"] and word not in string.punctuation:
+                        predicted_class_information["millenial"]["tf"][word] += 1
+                    elif word not in string.punctuation:
+                        predicted_class_information["millenial"]["tf"][word] = 1
+                        
+            elif tweet_class == "gen_x":
+                # Incrementing counts of millenial documents
+                predicted_class_information["gen_x"]["num_docs"] += 1
+
+                # Looping through file content
+                for word in tweet_content:
+                    # Incrementing counts of gen x words
+                    predicted_class_information["gen_x"]["total_words"] += 1
+                    word = word.lower()
+
+                    # Check if word is emoji
+                    if is_emoji(word):
+                        word = "general_emoji_encoding"
+                    
+                    # Adding to total docs
+                    if word not in vocab_set and word not in string.punctuation:
+                        vocab_set.append(word)
+                    
+                    if word in predicted_class_information["gen_x"]["tf"] and word not in string.punctuation:
+                        predicted_class_information["gen_x"]["tf"][word] += 1
+                    elif word not in string.punctuation:
+                        predicted_class_information["gen_x"]["tf"][word] = 1
+                
+            elif tweet_class == "boomer":
+                # Incrementing counts of millenial documents
+                predicted_class_information["boomer"]["num_docs"] += 1
+
+                # Looping through file content
+                for word in tweet_content:
+                    predicted_class_information["boomer"]["total_words"] += 1
+                    word = word.lower()
+
+                    # Check if word is emoji
+                    if is_emoji(word):
+                        word = "general_emoji_encoding"
+                    
+                    # Adding to total docs
+                    if word not in vocab_set and word not in string.punctuation:
+                        vocab_set.append(word)
+
+                    
+                    if word in predicted_class_information["boomer"]["tf"] and word not in string.punctuation:
+                        predicted_class_information["boomer"]["tf"][word] += 1
+                    elif word not in string.punctuation:
+                        predicted_class_information["boomer"]["tf"][word] = 1
+    
+    return predicted_class_information, len(vocab_set)
 
             
 
-def testNaiveBayes(test_file_path,num_true_docs, num_fake_docs, true_vocab_set, fake_vocab_set, total_words_true, total_words_fake, vocab_set):
+def testNaiveBayes(test_file_path, predicted_class_information, vocab_size):
     # Opening the file
     file_content = open(test_file_path, "r").read()
     
@@ -75,97 +146,65 @@ def testNaiveBayes(test_file_path,num_true_docs, num_fake_docs, true_vocab_set, 
 
     # Tokenizing text
     file_content = tokenizeText(file_content)
+    # TODO: Check for emoji
 
-    # Assuming class is true
-    p_true = num_true_docs/num_true_docs+num_fake_docs
-
-    # Looping through words in content
-    for word in file_content:
-        n_k = 0
-        if word in true_vocab_set:
-            n_k = true_vocab_set[word]
-        p_true *= ((n_k + 1)/(total_words_true+len(vocab_set)))
-
-    # Assuming class is false
-    p_false = num_true_docs/num_true_docs+num_fake_docs
-
-    # Looping through words in content
-    for word in file_content:
-        n_k = 0
-        if word in fake_vocab_set:
-            n_k = fake_vocab_set[word]
-        p_false *= ((n_k + 1)/(total_words_fake+len(vocab_set)))
     
-    # If the probability of word being class true is greater than false, return true
-    if p_true > p_false:
-        return "true"
-    # Else return false
-    return "fake"
 
 if __name__ == "__main__":
     # Getting the filename from the command line
-    folder = os.fsdecode(sys.argv[1])
+    test_file = os.fsdecode(sys.argv[1])
+    training_file = os.fsdecode(sys.argv[2])
 
     # Initializing list of files
-    filename_paths = []
-    filename_contents = {}
+    test_filename_content = {}
+    training_filename_paths = []
 
-    #Outputting information to file
-    output_file = open('naivebayes.output.' + folder[:len(folder)-1], 'w')
-
-    for filename in glob.glob(folder + '*'):
-        # Getting file name and appending its path to list
-        filename_paths.append(str(filename))
-        content = open(filename, "r").read()
-        filename_contents[filename] = content 
-    
-    accuracy = 0
-    chunk_size = math.ceil(len(filename_paths)/10)
-    chunks = [filename_paths[x:x+chunk_size] for x in range(0, len(filename_paths), chunk_size)]
-    files_seen = []
 
     # Looping through filename paths
-    #for test_file_paths in chunks:
-    i = 0
-    for test_file_paths in chunks:
-        # Initializing list with training probabilities
-        training_file_paths = list(set(filename_paths) - set(test_file_paths))
-       
-        # Training a Naive Baye s classifier:
-        num_true_docs, num_fake_docs, true_vocab_set, fake_vocab_set, total_words_true, total_words_fake, vocab_set = trainNaiveBayes(training_file_paths)
-        true_vocab_set_prob = {}
-        fake_vocab_set_prob = {}
-        # Code to print words with highest probability
-        # if i == 0:
-        #     for word in true_vocab_set:
-        #         if word not in string.punctuation:
-        #             true_vocab_set_prob[word] = (true_vocab_set[word] + 1)/(total_words_true + len(vocab_set))
-        #     sorted_true = sorted(true_vocab_set_prob.items(), key=lambda x:x[1])
-        #     sorted_true.reverse()
-        #     for i in range(0, 10):
-        #         print(sorted_true[i][0] + " " + str(sorted_true[i][1]))
-            
-        #     for word in fake_vocab_set:
-        #         if word not in string.punctuation:
-        #             fake_vocab_set_prob[word] = (fake_vocab_set[word] + 1)/(total_words_fake + len(vocab_set))
-        #     sorted_fake = sorted(fake_vocab_set_prob.items(), key=lambda x:x[1])
-        #     sorted_fake.reverse()
-        #     print()
-        #     for i in range(0, 10):
-        #         print(sorted_fake[i][0] + " " + str(sorted_fake[i][1]))
-       
-        #i += 1
+    # Training a Naive Bayes classifier:
+    # For each class we need: number of documents in that class, number of words in that class, word/count dictionary for each class
+    # Size of vocab
+    # predicted_class_information => key = class_name, value = {"num_docs": 5, "total_words": 1000, "tf": {}}
+    predicted_class_information, vocab_size = trainNaiveBayes(training_file)
+  
+   
         
-        # Testing the Naive Bayes classifier:
-        for test_file_path in test_file_paths:
-            predicted_class = testNaiveBayes(test_file_path, num_true_docs, num_fake_docs, true_vocab_set, fake_vocab_set, total_words_true, total_words_fake, vocab_set)
-            output_file.write(str(test_file_path) + " " + str(predicted_class) + '\n')
-        
-            #Calculating accruancy
-            if predicted_class == test_file_path.split("/")[-1][:4]:
-                accuracy += 1
+    # Testing the Naive Bayes classifier:
+    for test_file_path in test_filename_paths:
+        predicted_class = testNaiveBayes(test_file_path, predicted_class_information, vocab_size)
+        output_file.write(str(test_file_path) + " " + str(predicted_class) + '\n')
+    
+        #Calculating accruancy
+        if predicted_class == test_file_path.split("/")[-1][:4]:
+            accuracy += 1
         
     print(accuracy/len(filename_paths))
+
+    # # Assuming class is true
+    # p_true = num_true_docs/num_true_docs+num_fake_docs
+
+    # # Looping through words in content
+    # for word in file_content:
+    #     n_k = 0
+    #     if word in true_vocab_set:
+    #         n_k = true_vocab_set[word]
+    #     p_true *= ((n_k + 1)/(total_words_true+len(vocab_set)))
+
+    # # Assuming class is false
+    # p_false = num_true_docs/num_true_docs+num_fake_docs
+
+    # # Looping through words in content
+    # for word in file_content:
+    #     n_k = 0
+    #     if word in fake_vocab_set:
+    #         n_k = fake_vocab_set[word]
+    #     p_false *= ((n_k + 1)/(total_words_fake+len(vocab_set)))
+    
+    # # If the probability of word being class true is greater than false, return true
+    # if p_true > p_false:
+    #     return "true"
+    # # Else return false
+    # return "fake"
 
 
 
