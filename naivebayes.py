@@ -1,13 +1,12 @@
-import sys, re, os, math
-from preprocess import removeSGML, tokenizeText, removeStopwords, stemWords
+import sys, os
+from preprocess import tokenizeText, removeStopwords, stemWords
 from porter import PorterStemmer
-import glob
 import string
-from emoji import UNICODE_EMOJI
+import emoji
 import csv
 
-def is_emoji(s):
-    return s in UNICODE_EMOJI
+    # def is_emoji(s):
+    #     return s in emoji.UNICODE_EMOJI
 
 def trainNaiveBayes(training_file):
     # Initialzing vocab_set
@@ -28,13 +27,9 @@ def trainNaiveBayes(training_file):
         reader = csv.reader(csv_file)
 
         for row in reader:
-            print(row)
             # Opening the file
             tweet_content = row[1]
             
-            # Removing the SGML tags
-            tweet_content = removeSGML(tweet_content)
-
             # Tokenizing text
             tweet_content = tokenizeText(tweet_content)
 
@@ -52,9 +47,11 @@ def trainNaiveBayes(training_file):
                     predicted_class_information["gen_z"]["total_words"] += 1
                     word = word.lower()
 
-                    # Check if word is emoji
-                    if is_emoji(word):
-                        word = "general_emoji_encoding"
+                    # Convert all emojis to plaintext
+                    word = emoji.demojize(word)
+                    # >>> print(emoji.demojize('Python is 👍'))
+                    # Python is :thumbs_up: 
+
                     
                     # Adding to total docs
                     if word not in vocab_set and word not in string.punctuation:
@@ -74,9 +71,9 @@ def trainNaiveBayes(training_file):
                     # Incrementing number of words
                     predicted_class_information["millenial"]["total_words"] += 1
                     word = word.lower()
-                    # Check if word is emoji
-                    if is_emoji(word):
-                        word = "general_emoji_encoding"
+
+                    # Convert all emojis to plaintext
+                    word = emoji.demojize(word)
                     
                     # Adding to total docs
                     if word not in vocab_set and word not in string.punctuation:
@@ -97,9 +94,8 @@ def trainNaiveBayes(training_file):
                     predicted_class_information["gen_x"]["total_words"] += 1
                     word = word.lower()
 
-                    # Check if word is emoji
-                    if is_emoji(word):
-                        word = "general_emoji_encoding"
+                    # Convert all emojis to plaintext
+                    word = emoji.demojize(word)
                     
                     # Adding to total docs
                     if word not in vocab_set and word not in string.punctuation:
@@ -119,9 +115,8 @@ def trainNaiveBayes(training_file):
                     predicted_class_information["boomer"]["total_words"] += 1
                     word = word.lower()
 
-                    # Check if word is emoji
-                    if is_emoji(word):
-                        word = "general_emoji_encoding"
+                    # Convert all emojis to plaintext
+                    word = emoji.demojize(word)
                     
                     # Adding to total docs
                     if word not in vocab_set and word not in string.punctuation:
@@ -136,18 +131,70 @@ def trainNaiveBayes(training_file):
     return predicted_class_information, len(vocab_set)
 
             
+# input: the file path to be used for test;
+# input: the output produced by trainNaiveBayes;
+# output: predicted class (the string “true” or the string “fake”. You can assume these to be the only classes to be predicted
+def testNaiveBayes(input_tweet: str, predicted_class: dict, vocab_size: int) -> str:
+    """Take in class probabilites and total vocab size and test on input tweet."""
 
-def testNaiveBayes(test_file_path, predicted_class_information, vocab_size):
-    # Opening the file
-    file_content = open(test_file_path, "r").read()
-    
-    # Removing the SGML tags
-    file_content = removeSGML(file_content)
+    # build list of probabilities based on the token
+    total_docs = predicted_class["gen_z"]["num_docs"] + predicted_class["millenial"]["num_docs"] + predicted_class["gen_x"]["num_docs"] + predicted_class["boomer"]["num_docs"]
+    gen_z_probability = predicted_class["gen_z"]["num_docs"]/total_docs
+    gen_x_probability =  predicted_class["gen_x"]["num_docs"]/total_docs
+    millenial_probability =  predicted_class["millenial"]["num_docs"]/total_docs
+    boomer_probability =  predicted_class["boomer"]["num_docs"]/total_docs
 
-    # Tokenizing text
-    file_content = tokenizeText(file_content)
-    # TODO: Check for emoji
+    # loop through tokens and get probability for fake and true
+    for token in input_tweet:
+        # Convert all emojis to plaintext
+        token = emoji.demojize(token)
+        # Adding to gen z probability
+        if token not in predicted_class["gen_z"]["tf"]:
+            prob = 1 / (predicted_class["gen_z"]["total_words"] + vocab_size)
+            gen_z_probability *= float(prob)
+        else:
+            prob = (predicted_class["gen_z"]["tf"][token] + 1) / \
+            float(predicted_class["gen_z"]["total_words"] + vocab_size)
+            gen_z_probability *= float(prob)
 
+        # Adding to millenial probability
+        if token not in predicted_class["millenial"]["tf"]:
+            prob = 1 / float(predicted_class["millenial"]["total_words"] + vocab_size)
+            millenial_probability *= float(prob)
+        else:
+            prob = (predicted_class["millenial"]["tf"][token] + 1) / \
+            float(predicted_class["millenial"]["total_words"] + vocab_size)
+            millenial_probability *= float(prob)
+
+        # Adding to  gen x probability
+        if token not in predicted_class["gen_x"]["tf"]:
+            prob = 1 / (predicted_class["gen_x"]["total_words"] + vocab_size)
+            gen_x_probability *= float(prob)
+        else:
+            prob = (predicted_class["gen_x"]["tf"][token] + 1) / \
+            float(predicted_class["gen_x"]["total_words"] + vocab_size)
+            gen_x_probability *= float(prob)
+
+        # Adding to boomer probability
+        if token not in predicted_class["boomer"]["tf"]:
+            prob = 1 / (predicted_class["boomer"]["total_words"] + vocab_size)
+            boomer_probability *= float(prob)
+        else:
+            prob = (predicted_class["boomer"]["tf"][token] + 1) / \
+            float(predicted_class["boomer"]["total_words"] + vocab_size)
+            boomer_probability *= float(prob)
+
+
+   
+    maxProb = max(gen_z_probability,gen_x_probability,millenial_probability,boomer_probability)
+    if gen_z_probability == maxProb: 
+        return 'gen_z'
+    elif gen_x_probability == maxProb:  
+        return 'gen_x' 
+    elif millenial_probability == maxProb:
+        return 'millenial'
+    else:
+        return 'boomer'
     
 
 if __name__ == "__main__":
@@ -155,65 +202,35 @@ if __name__ == "__main__":
     test_file = os.fsdecode(sys.argv[1])
     training_file = os.fsdecode(sys.argv[2])
 
-    # Initializing list of files
-    test_filename_content = {}
-    training_filename_paths = []
-
-
-    # Looping through filename paths
-    # Training a Naive Bayes classifier:
     # For each class we need: number of documents in that class, number of words in that class, word/count dictionary for each class
     # Size of vocab
     # predicted_class_information => key = class_name, value = {"num_docs": 5, "total_words": 1000, "tf": {}}
     predicted_class_information, vocab_size = trainNaiveBayes(training_file)
   
+        
+    #mTesting the Naive Bayes classifier:
+    accuracy = 0
+    total_tweets = 0
+    with open(test_file, 'r') as csv_file:
+        reader = csv.reader(csv_file)
+        total_tweets += 1
+        for row in reader:
+            tweet_content = row[1]
+
+            # Tokenizing text
+            tweet_content = tokenizeText(tweet_content)
+
+            #Getting filename
+            tweet_class = row[2]
+    
+            predicted_class = testNaiveBayes(tweet_content, predicted_class_information, vocab_size)
+            print(predicted_class)
+            print(tweet_class)
+            print("-----")
+            #Calculating accruancy
+            if predicted_class == tweet_class:
+                accuracy += 1
+        
+    print(accuracy/total_tweets)
+
    
-        
-    # Testing the Naive Bayes classifier:
-    for test_file_path in test_filename_paths:
-        predicted_class = testNaiveBayes(test_file_path, predicted_class_information, vocab_size)
-        output_file.write(str(test_file_path) + " " + str(predicted_class) + '\n')
-    
-        #Calculating accruancy
-        if predicted_class == test_file_path.split("/")[-1][:4]:
-            accuracy += 1
-        
-    print(accuracy/len(filename_paths))
-
-    # # Assuming class is true
-    # p_true = num_true_docs/num_true_docs+num_fake_docs
-
-    # # Looping through words in content
-    # for word in file_content:
-    #     n_k = 0
-    #     if word in true_vocab_set:
-    #         n_k = true_vocab_set[word]
-    #     p_true *= ((n_k + 1)/(total_words_true+len(vocab_set)))
-
-    # # Assuming class is false
-    # p_false = num_true_docs/num_true_docs+num_fake_docs
-
-    # # Looping through words in content
-    # for word in file_content:
-    #     n_k = 0
-    #     if word in fake_vocab_set:
-    #         n_k = fake_vocab_set[word]
-    #     p_false *= ((n_k + 1)/(total_words_fake+len(vocab_set)))
-    
-    # # If the probability of word being class true is greater than false, return true
-    # if p_true > p_false:
-    #     return "true"
-    # # Else return false
-    # return "fake"
-
-
-
-
-
-
-
-
-        
-
-
-    
