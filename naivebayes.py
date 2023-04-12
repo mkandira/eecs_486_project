@@ -25,19 +25,21 @@ def trainNaiveBayes(training_file):
     
     with open(training_file, 'r') as csv_file:
         reader = csv.reader(csv_file)
-
+        
+        index = 0
         for row in reader:
+            index += 1
             # Opening the file
             tweet_content = row[1]
             
             # Tokenizing text
             tweet_content = tokenizeText(tweet_content)
 
-            #Getting filename
+            # Getting class
             tweet_class = row[2]
-                
-            # If file is in class "true"
-            if tweet_class == "gen_z":
+
+            # If file is in class "genz"
+            if "gen z" in tweet_class:
                 # Incrementing counts of gen z documents
                 predicted_class_information["gen_z"]["num_docs"] += 1
 
@@ -62,7 +64,7 @@ def trainNaiveBayes(training_file):
                     elif word not in string.punctuation:
                         predicted_class_information["gen_z"]["tf"][word] = 1
             # If file is millenial
-            elif tweet_class == "millenial":
+            elif "millenial" in tweet_class:
                 # Incrementing counts of millenial documents
                 predicted_class_information["millenial"]["num_docs"] += 1
 
@@ -84,7 +86,7 @@ def trainNaiveBayes(training_file):
                     elif word not in string.punctuation:
                         predicted_class_information["millenial"]["tf"][word] = 1
                         
-            elif tweet_class == "gen_x":
+            elif "gen x" in tweet_class:
                 # Incrementing counts of millenial documents
                 predicted_class_information["gen_x"]["num_docs"] += 1
 
@@ -106,7 +108,7 @@ def trainNaiveBayes(training_file):
                     elif word not in string.punctuation:
                         predicted_class_information["gen_x"]["tf"][word] = 1
                 
-            elif tweet_class == "boomer":
+            elif "boomer" in tweet_class:
                 # Incrementing counts of millenial documents
                 predicted_class_information["boomer"]["num_docs"] += 1
 
@@ -127,6 +129,9 @@ def trainNaiveBayes(training_file):
                         predicted_class_information["boomer"]["tf"][word] += 1
                     elif word not in string.punctuation:
                         predicted_class_information["boomer"]["tf"][word] = 1
+            else:
+                print(tweet_class)
+                print(index)
     
     return predicted_class_information, len(vocab_set)
 
@@ -136,13 +141,36 @@ def trainNaiveBayes(training_file):
 # output: predicted class (the string “true” or the string “fake”. You can assume these to be the only classes to be predicted
 def testNaiveBayes(input_tweet: str, predicted_class: dict, vocab_size: int) -> str:
     """Take in class probabilites and total vocab size and test on input tweet."""
-
+    
     # build list of probabilities based on the token
     total_docs = predicted_class["gen_z"]["num_docs"] + predicted_class["millenial"]["num_docs"] + predicted_class["gen_x"]["num_docs"] + predicted_class["boomer"]["num_docs"]
     gen_z_probability = predicted_class["gen_z"]["num_docs"]/total_docs
     gen_x_probability =  predicted_class["gen_x"]["num_docs"]/total_docs
     millenial_probability =  predicted_class["millenial"]["num_docs"]/total_docs
     boomer_probability =  predicted_class["boomer"]["num_docs"]/total_docs
+
+    print("total docs: " + str(total_docs) + '\n')
+    print("gen z num words" + str(predicted_class["gen_z"]["total_words"]) + "\n")
+    print("gen x num words" + str(predicted_class["gen_x"]["total_words"]) + "\n")
+    print("millenial num words" + str(predicted_class["millenial"]["total_words"]) + "\n")
+    print("boomer num words" + str(predicted_class["boomer"]["total_words"]) + "\n")
+
+    # print("term frequences: " + '\n')
+    # print("gen z tf: " + '\n')
+    # print(*predicted_class["gen_z"]["tf"], sep = ", ")
+    # print('\n')
+    # print("gen x tf: " + '\n')
+    # print(*predicted_class["gen_x"]["tf"], sep = ", ")
+    # print('\n')
+    # print("millenial tf: " + '\n')
+    # print(*predicted_class["millenial"]["tf"], sep = ", ")
+    # print('\n')
+    # print("boomer tf: " + '\n')
+    # print(*predicted_class["boomer"]["tf"], sep = ", ")
+    # print('\n')
+
+
+
 
     # loop through tokens and get probability for fake and true
     for token in input_tweet:
@@ -185,12 +213,12 @@ def testNaiveBayes(input_tweet: str, predicted_class: dict, vocab_size: int) -> 
             boomer_probability *= float(prob)
 
 
-   
+    # print("Probabilities: " + str(gen_z_probability) + " " + str(gen_x_probability) + " " + str(millenial_probability) + " " + str(boomer_probability) + "\n")
     maxProb = max(gen_z_probability,gen_x_probability,millenial_probability,boomer_probability)
     if gen_z_probability == maxProb: 
-        return 'gen_z'
+        return 'gen z'
     elif gen_x_probability == maxProb:  
-        return 'gen_x' 
+        return 'gen x' 
     elif millenial_probability == maxProb:
         return 'millenial'
     else:
@@ -199,8 +227,9 @@ def testNaiveBayes(input_tweet: str, predicted_class: dict, vocab_size: int) -> 
 
 if __name__ == "__main__":
     # Getting the filename from the command line
-    test_file = os.fsdecode(sys.argv[1])
-    training_file = os.fsdecode(sys.argv[2])
+    training_file = os.fsdecode(sys.argv[1])
+    test_file = os.fsdecode(sys.argv[2])
+    
 
     # For each class we need: number of documents in that class, number of words in that class, word/count dictionary for each class
     # Size of vocab
@@ -213,8 +242,11 @@ if __name__ == "__main__":
     total_tweets = 0
     with open(test_file, 'r') as csv_file:
         reader = csv.reader(csv_file)
-        total_tweets += 1
+        
         for row in reader:
+            #increment tweet count
+            total_tweets += 1
+
             tweet_content = row[1]
 
             # Tokenizing text
@@ -224,13 +256,14 @@ if __name__ == "__main__":
             tweet_class = row[2]
     
             predicted_class = testNaiveBayes(tweet_content, predicted_class_information, vocab_size)
-            print(predicted_class)
-            print(tweet_class)
-            print("-----")
+            # print(predicted_class)
+            # print(tweet_class)
+            # print("-----")
             #Calculating accruancy
-            if predicted_class == tweet_class:
+            if predicted_class in tweet_class:
                 accuracy += 1
-        
+    print(accuracy)
+    print(total_tweets)    
     print(accuracy/total_tweets)
 
    
