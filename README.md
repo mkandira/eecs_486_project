@@ -32,13 +32,18 @@ Our approach involved using a Naive Bayes Classiifier based on Assignment 4 and 
 We had two datasets for our project, one to train our predictor and another to test how accurate our algorithm was. The two datasets were obtained by scrubbing tweets from Twitter of verified users using a cloud based software program called PhantomBuster. These two datasets are named `testing_data.csv` and `training_data.csv` accordingly.
 
 The training and testing data are structed as following:
-```sh
+```
 [ID],[Tweet],[Classifiction]
-Example: 
+Examples: 
+
 ChantelJeffries,Just like that,gen z
+
 oliviagobrien,RT @Shazam: Shazam #Josslyn by @oliviagobrien to unlock an exclusive animated video 💙 https://t.co/nhG0ioG8ut,gen z
+
 frynaomifry,feeling very tears of a clown today,millenial
+
 GRRMspeaking,"I had such a great time on the Colbert Show, don't miss the extended interview: https://t.co/vzhPkKp9IH https://t.co/c2QpqXvK7k",boomer
+
 KaceyMusgraves,walk in peace..,gen x
 ```
 ***
