@@ -42,9 +42,11 @@ oliviagobrien,RT @Shazam: Shazam #Josslyn by @oliviagobrien to unlock an exclusi
 
 # Install:
 To clone the project from the public repository link use the following command:
+For SSH
 ```
 git clone git@github.com:mkandira/eecs_486_project.git
 ```
+For HTTP
 ```
 git clone https://github.com/mkandira/eecs_486_project.git
 ```
