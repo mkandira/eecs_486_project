@@ -18,10 +18,10 @@ def trainNaiveBayes(training_file):
     predicted_class_information_value["tf"] = {}
    
     predicted_class_information = {}
-    predicted_class_information["gen_x"] = predicted_class_information_value
-    predicted_class_information["millenial"] = predicted_class_information_value
-    predicted_class_information["gen_z"] = predicted_class_information_value
-    predicted_class_information["boomer"] = predicted_class_information_value
+    predicted_class_information["gen_x"] = dict(predicted_class_information_value)
+    predicted_class_information["millenial"] = dict(predicted_class_information_value)
+    predicted_class_information["gen_z"] = dict(predicted_class_information_value)
+    predicted_class_information["boomer"] = dict(predicted_class_information_value)
     
     with open(training_file, 'r') as csv_file:
         reader = csv.reader(csv_file)
@@ -132,7 +132,7 @@ def trainNaiveBayes(training_file):
             else:
                 print(tweet_class)
                 print(index)
-    
+    print(index)
     return predicted_class_information, len(vocab_set)
 
             
@@ -149,11 +149,15 @@ def testNaiveBayes(input_tweet: str, predicted_class: dict, vocab_size: int) -> 
     millenial_probability =  predicted_class["millenial"]["num_docs"]/total_docs
     boomer_probability =  predicted_class["boomer"]["num_docs"]/total_docs
 
-    print("total docs: " + str(total_docs) + '\n')
-    print("gen z num words" + str(predicted_class["gen_z"]["total_words"]) + "\n")
-    print("gen x num words" + str(predicted_class["gen_x"]["total_words"]) + "\n")
-    print("millenial num words" + str(predicted_class["millenial"]["total_words"]) + "\n")
-    print("boomer num words" + str(predicted_class["boomer"]["total_words"]) + "\n")
+    # print("total docs: " + str(total_docs) + '\n')
+    # print("gen z num words" + str(predicted_class["gen_z"]["total_words"]) + "\n")
+    # print("gen x num words" + str(predicted_class["gen_x"]["total_words"]) + "\n")
+    # print("millenial num words" + str(predicted_class["millenial"]["total_words"]) + "\n")
+    # print("boomer num words" + str(predicted_class["boomer"]["total_words"]) + "\n")
+    # print("gen z total docs" + str(predicted_class["gen_z"]["num_docs"]) + "\n")
+    # print("gen x total docs" + str(predicted_class["gen_x"]["num_docs"]) + "\n")
+    # print("millenial total docs" + str(predicted_class["millenial"]["num_docs"]) + "\n")
+    # print("boomer total docs" + str(predicted_class["boomer"]["num_docs"]) + "\n")
 
     # print("term frequences: " + '\n')
     # print("gen z tf: " + '\n')
@@ -256,9 +260,9 @@ if __name__ == "__main__":
             tweet_class = row[2]
     
             predicted_class = testNaiveBayes(tweet_content, predicted_class_information, vocab_size)
-            # print(predicted_class)
-            # print(tweet_class)
-            # print("-----")
+            print(predicted_class)
+            print(tweet_class)
+            print("-----")
             #Calculating accruancy
             if predicted_class in tweet_class:
                 accuracy += 1
