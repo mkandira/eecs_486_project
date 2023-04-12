@@ -65,14 +65,11 @@ Install necessary packages using "pip install".
 pip install emoji
 ```
 # Running the Code:
-We must first run the classifier on the training set, which can be done using the following command:
+To run the classifier enter the following command:
 ```sh
-python naivebayes.py training_data.csv
+python naivebayes.py training_data.csv testing_data.csv
 ```
 
-To then test the classifier on the testing data run the following:
-```sh
-python naivebayes.py testing_data.csv
 ```
 
 ***
