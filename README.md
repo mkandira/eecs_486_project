@@ -37,6 +37,9 @@ The training and testing data are structed as following:
 Example: 
 ChantelJeffries,Just like that,gen z
 oliviagobrien,RT @Shazam: Shazam #Josslyn by @oliviagobrien to unlock an exclusive animated video 💙 https://t.co/nhG0ioG8ut,gen z
+frynaomifry,feeling very tears of a clown today,millenial
+GRRMspeaking,"I had such a great time on the Colbert Show, don't miss the extended interview: https://t.co/vzhPkKp9IH https://t.co/c2QpqXvK7k",boomer
+KaceyMusgraves,walk in peace..,gen x
 ```
 ***
 
