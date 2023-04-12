@@ -1,4 +1,3 @@
-# Delna Sholapurwalla; delshola 
 
 #porter.py 
 #!/usr/bin/env python
